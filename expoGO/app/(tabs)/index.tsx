@@ -1,98 +1,91 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { useState } from 'react';
+import { Image, StyleSheet, TextInput, Button, Alert } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import axios from 'axios';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">sou raul 1x!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [nombre, setNombre] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const router = useRouter();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const handleLogin = async () => {
+    try {
+      // Enviar la solicitud al backend para validar el login
+      const response = await axios.post('http://localhost:5000/login', {
+        nombre,
+        contrasena,
+      });
+
+      if (response.status === 200) {
+        // Redirigir al usuario a la página principal si el login es exitoso
+        router.replace('/(tabs)');  // Cambiar a la pantalla principal
+      }
+    } catch (error) {
+      // Mostrar un error si algo sale mal
+      const errorMessage = (error as any)?.response?.data?.message || 'Error en la conexión';
+      Alert.alert('Error', errorMessage);
+    }
+  };
+
+  return (
+    <ThemedView style={styles.container}>
+      <ThemedText type="title" style={styles.title}>Iniciar Sesión</ThemedText>
+
+      {/* Campo para el nombre de usuario */}
+      <TextInput
+        style={styles.input}
+        placeholder="Nombre de Usuario"
+        value={nombre}
+        onChangeText={setNombre}
+      />
+
+      {/* Campo para la contraseña */}
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña"
+        secureTextEntry
+        value={contrasena}
+        onChangeText={setContrasena}
+      />
+
+      {/* Botón para realizar el login */}
+      <Button title="Entrar" onPress={handleLogin} />
+
+      {/* Imagen (opcional, puedes dejarla o cambiarla) */}
+      <Image
+        source={require('@/assets/images/partial-react-logo.png')}
+        style={styles.reactLogo}
+      />
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#fff', // Fondo blanco o el color que prefieras
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 5,
   },
   reactLogo: {
     height: 178,
     width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+    marginTop: 20,
+    alignSelf: 'center',
   },
 });
